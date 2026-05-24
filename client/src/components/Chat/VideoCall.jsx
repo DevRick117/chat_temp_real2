@@ -12,7 +12,6 @@ export default function VideoCall({ socket, user }) {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true })
         streamRef.current = stream
         setInCall(true)
-        // ✅ espera o DOM atualizar antes de setar o srcObject
         setTimeout(() => {
             if (myVideoRef.current) myVideoRef.current.srcObject = stream
         }, 100)
@@ -64,7 +63,6 @@ export default function VideoCall({ socket, user }) {
         }
     }, [socket])
 
-    // ✅ seta srcObject quando inCall vira true
     useEffect(() => {
         if (inCall && myVideoRef.current && streamRef.current) {
             myVideoRef.current.srcObject = streamRef.current
@@ -88,62 +86,102 @@ export default function VideoCall({ socket, user }) {
     }
 
     return (
-        <div style={{ marginBottom: '12px' }}>
-            {!inCall ? (
-                <button
-                    onClick={startCall}
-                    style={{
-                        background: '#25D366',
-                        color: '#fff',
-                        border: 'none',
-                        borderRadius: '8px',
-                        padding: '8px 16px',
-                        cursor: 'pointer'
-                    }}
-                >
-                    📹 Iniciar videochamada
-                </button>
-            ) : (
-                <div>
-                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '8px' }}>
+        <>
+            {/* Botão para iniciar chamada */}
+            <button
+                onClick={startCall}
+                style={{
+                    background: '#25D366',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '8px 16px',
+                    cursor: 'pointer'
+                }}
+            >
+                📹
+            </button>
+
+            {/* Modal de videochamada */}
+            {inCall && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    width: '100vw',
+                    height: '100vh',
+                    background: '#111',
+                    zIndex: 9999,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '16px'
+                }}>
+                    <h2 style={{ color: '#fff', margin: 0 }}>📹 Videochamada</h2>
+
+                    {/* Vídeos */}
+                    <div style={{
+                        display: 'flex',
+                        gap: '12px',
+                        flexWrap: 'wrap',
+                        justifyContent: 'center',
+                        maxWidth: '90vw'
+                    }}>
+                        {/* Meu vídeo */}
                         <div style={{ position: 'relative' }}>
                             <video
                                 ref={myVideoRef}
                                 autoPlay
                                 muted
                                 playsInline
-                                style={{ width: '160px', borderRadius: '8px', background: '#000' }}
+                                style={{
+                                    width: '300px',
+                                    borderRadius: '12px',
+                                    background: '#000',
+                                    border: '2px solid #25D366'
+                                }}
                             />
                             <span style={{
-                                position: 'absolute', bottom: '4px', left: '4px',
-                                background: 'rgba(0,0,0,0.5)', color: '#fff',
-                                fontSize: '11px', padding: '2px 6px', borderRadius: '4px'
+                                position: 'absolute',
+                                bottom: '8px',
+                                left: '8px',
+                                background: 'rgba(0,0,0,0.6)',
+                                color: '#fff',
+                                fontSize: '12px',
+                                padding: '2px 8px',
+                                borderRadius: '4px'
                             }}>
-                                Você
+                                {user?.displayName ?? 'Você'}
                             </span>
                         </div>
 
+                        {/* Vídeos dos outros */}
                         {peers.map(({ peerId, peer }) => (
                             <PeerVideo key={peerId} peer={peer} />
                         ))}
                     </div>
 
+                    {/* Botão de sair */}
                     <button
                         onClick={leaveCall}
                         style={{
                             background: '#e53e3e',
                             color: '#fff',
                             border: 'none',
-                            borderRadius: '8px',
-                            padding: '8px 16px',
-                            cursor: 'pointer'
+                            borderRadius: '50%',
+                            width: '60px',
+                            height: '60px',
+                            fontSize: '24px',
+                            cursor: 'pointer',
+                            marginTop: '16px'
                         }}
                     >
-                        ❌ Sair da chamada
+                        ❌
                     </button>
                 </div>
             )}
-        </div>
+        </>
     )
 }
 
@@ -157,11 +195,18 @@ function PeerVideo({ peer }) {
     }, [peer])
 
     return (
-        <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            style={{ width: '160px', borderRadius: '8px', background: '#000' }}
-        />
+        <div style={{ position: 'relative' }}>
+            <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                style={{
+                    width: '300px',
+                    borderRadius: '12px',
+                    background: '#000',
+                    border: '2px solid #fff'
+                }}
+            />
+        </div>
     )
 }
