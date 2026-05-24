@@ -41,10 +41,31 @@ export default function Chat({ socket, user }) {
         }
     }, [mensageList])
 
+    const playNotificationSound = () => {
+        const ctx = new AudioContext()
+        const oscillator = ctx.createOscillator()
+        const gainNode = ctx.createGain()
+
+        oscillator.connect(gainNode)
+        gainNode.connect(ctx.destination)
+
+        oscillator.frequency.setValueAtTime(587, ctx.currentTime)
+        oscillator.frequency.setValueAtTime(784, ctx.currentTime + 0.1)
+
+        gainNode.gain.setValueAtTime(0.3, ctx.currentTime)
+        gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3)
+
+        oscillator.start(ctx.currentTime)
+        oscillator.stop(ctx.currentTime + 0.3)
+    }
+
     useEffect(() => {
         if (mensageList.length === 0) return
         const last = mensageList[mensageList.length - 1]
         if (last.authorId === socket.id) return
+
+        // Som de notificação
+        playNotificationSound()
 
         if (document.hidden && Notification.permission === 'granted') {
             new Notification(`${last.authorUsername}`, {
